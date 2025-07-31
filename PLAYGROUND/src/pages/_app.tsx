@@ -1,5 +1,6 @@
 import { CloudProvider } from "@/cloud/useCloud";
 import "@livekit/components-styles/components/participant";
+import "@/styles/home.css";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 
