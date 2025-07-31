@@ -1,33 +1,18 @@
 import os
 
-EXCLUDED_DIRS = {'__pycache__', 'logs', 'KMS'}
-EXCLUDED_FILES = {'tree.py', 'README.md'}
-INCLUDED_EXTENSIONS = {'.py', '.html'}
-INCLUDED_FILENAMES = {'requirements.txt'}
+def print_tree(start_path='.', prefix=''):
+    entries = sorted(os.listdir(start_path))
+    entries = [e for e in entries if not e.startswith('.')]  # Skip hidden files/folders
+    entries_count = len(entries)
 
-def should_include(file):
-    if file in EXCLUDED_FILES:
-        return False
-    ext = os.path.splitext(file)[1]
-    return ext in INCLUDED_EXTENSIONS or file in INCLUDED_FILENAMES
+    for i, entry in enumerate(entries):
+        path = os.path.join(start_path, entry)
+        connector = '├── ' if i < entries_count - 1 else '└── '
+        print(prefix + connector + entry)
 
-def print_file_content(filepath, rel_path):
-    print(f"\n=== {rel_path} ===\n")
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            print(f.read())
-    except Exception as e:
-        print(f"[Error reading {rel_path}]: {e}")
-
-def scan_and_show(start_path='.'):
-    for root, dirs, files in os.walk(start_path):
-        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
-
-        for file in files:
-            if should_include(file):
-                full_path = os.path.join(root, file)
-                rel_path = os.path.relpath(full_path, start_path)
-                print_file_content(full_path, rel_path)
+        if os.path.isdir(path):
+            extension = '│   ' if i < entries_count - 1 else '    '
+            print_tree(path, prefix + extension)
 
 if __name__ == '__main__':
-    scan_and_show()
+    print_tree()
