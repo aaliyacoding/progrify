@@ -1655,7 +1655,9 @@
             const audioElement = document.createElement('audio');
             audioElement.autoplay = true;
             document.body.appendChild(audioElement);
-            publication.track.attach(audioElement);
+            publication.track.attach(audioElement).then(() => {
+              audioElement.play().catch(e => console.error("Could not play audio:", e));
+            });
             
             // Update UI
             updateConnectionStatus('connected');
@@ -1671,15 +1673,13 @@
           }
         });
 
-        // Handle data messages for agent switching
-        room.on('dataReceived', (payload, participant) => {
-          try {
-            const data = JSON.parse(payload);
-            if (data.type === 'agent_update') {
-              updateAgentUI(data.agent);
-            }
-          } catch (e) {
-            console.error('Error parsing data:', e);
+        // Handle data messages for agent switching and text responses
+        room.on('dataReceived', (payload, participant, topic) => {
+          const text = new TextDecoder().decode(payload);
+          if (topic === 'lk-agent-chat') {
+            const chat = JSON.parse(text);
+            typingIndicator.classList.remove('active');
+            agentMessage.innerHTML = `<p>${chat.text}</p>`;
           }
         });
 
@@ -1739,13 +1739,14 @@
 
     // Switch to a different agent
     function switchAgent(agentKey) {
-      if (!currentRoom || agentKey === currentAgent) return;
+      if (agentKey === currentAgent) return;
       
-      // Send switch command to agent
-      currentRoom.localParticipant.publishData(JSON.stringify({
-        type: 'switch_agent',
-        agent: agentKey
-      }));
+      updateAgentUI(agentKey);
+
+      if (currentRoom) {
+        // Send switch command to agent
+        currentRoom.localParticipant.publishData(`switch to ${agentKey}`);
+      }
     }
 
     // Handle user input
@@ -1757,10 +1758,7 @@
       typingIndicator.classList.add('active');
       
       // Send message to agent
-      currentRoom.localParticipant.publishData(JSON.stringify({
-        type: 'user_message',
-        text: inputText
-      }));
+      currentRoom.localParticipant.publishData(inputText);
       
       userInput.value = '';
     }
@@ -1826,33 +1824,5 @@
     updateAgentUI('home');
   </script>
 
-<!-- Add this RIGHT BEFORE </body> -->
-<script src="https://cdn.jsdelivr.net/npm/livekit-client@1.0.0/dist/livekit-client.umd.min.js"></script>
-<script>
-document.getElementById('talkToAI').addEventListener('click', async function() {
-    try {
-        const room = new LiveKitClient.Room();
-        await room.connect('ws://localhost:7880', 'devtoken');
-        
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioTrack = new LiveKitClient.LocalAudioTrack(stream.getAudioTracks()[0]);
-        await room.localParticipant.publishTrack(audioTrack);
-        
-        room.on('trackPublished', (publication, participant) => {
-            if (publication.track.kind === 'audio') {
-                const audioElement = new Audio();
-                audioElement.autoplay = true;
-                document.body.appendChild(audioElement);
-                publication.track.attach(audioElement);
-            }
-        });
-        
-        alert("Connected! Speak to your AI agent.");
-    } catch (error) {
-        console.error("Connection failed:", error);
-        alert("Error: " + error.message + "\n\n1. Run 'python agent.py dev'\n2. Allow microphone\n3. Refresh page");
-    }
-});
-</script>
 </body>
 </html>
