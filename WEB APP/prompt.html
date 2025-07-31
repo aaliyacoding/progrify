@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progrify | Prompt Practicing Lab</title>
+  <meta name="description" content="Master AI communication with Progrify's Prompt Practicing Lab - craft perfect prompts for any AI system.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Shared styles from homepage */
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #5b21b6;
+      --primary-light: #c4b5fd;
+      --secondary: #f59e0b;
+      --accent: #ec4899;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --gray: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 30px 60px rgba(0, 0, 0, 0.15);
+      --gradient: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #ec4899 100%);
+      --elegant-bg: radial-gradient(ellipse at center, #1a1b2f 0%, #0f172a 100%);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--elegant-bg);
+      color: var(--light);
+      line-height: 1.7;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    h1, h2, h3, h4, h5 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    
+    /* Header (same as homepage) */
+    header {
+      background: rgba(2, 6, 23, 0.8);
+      padding: 20px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+    }
+    
+    .logo-icon {
+      color: var(--secondary);
+    }
+    
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 30px;
+    }
+    
+    nav a {
+      text-decoration: none;
+      color: var(--light);
+      font-weight: 400;
+      font-size: 1rem;
+      transition: all 0.3s;
+      position: relative;
+      opacity: 0.9;
+      letter-spacing: 0.5px;
+    }
+    
+    nav a:hover {
+      color: var(--primary-light);
+      opacity: 1;
+    }
+    
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 1px;
+      background: var(--primary-light);
+      bottom: -5px;
+      left: 0;
+      transition: width 0.3s;
+    }
+    
+    nav a:hover::after {
+      width: 100%;
+    }
+    
+    .header-btns {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .btn {
+      background: var(--gradient);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 50px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: 0.5s;
+      z-index: -1;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: var(--secondary);
+    }
+    
+    .btn-secondary:hover {
+      background: #d97706;
+    }
+    
+    /* Module-specific styles */
+    .module-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 180px 5% 80px;
+      text-align: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .module-hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, rgba(236, 72, 153, 0.05) 70%, transparent 100%);
+      z-index: -1;
+    }
+    
+    .module-hero h1 {
+      font-size: 3rem;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, #8b5cf6, #c4b5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      letter-spacing: -0.5px;
+    }
+    
+    .module-hero h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 2px;
+      background: var(--gradient);
+    }
+    
+    .module-hero p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: var(--gray);
+      margin-bottom: 40px;
+      opacity: 0.9;
+      font-weight: 300;
+      max-width: 800px;
+    }
+    
+    .module-container {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 5% 100px;
+      gap: 40px;
+    }
+    
+    .prompt-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .prompt-editor-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+    
+    .prompt-editor-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+    }
+    
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .editor-header h3 {
+      font-size: 1.2rem;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .editor-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .editor-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      color: var(--gray);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .editor-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    
+    .prompt-editor {
+      width: 100%;
+      min-height: 200px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 15px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: white;
+      resize: none;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .prompt-editor:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+    }
+    
+    .prompt-editor::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .prompt-controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+    
+    .prompt-controls .btn {
+      flex: 1;
+      justify-content: center;
+    }
+    
+    .ai-response-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+    
+    .ai-response-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+    }
+    
+    .response-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .response-header h3 {
+      font-size: 1.2rem;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .response-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .ai-response {
+      min-height: 200px;
+      background: rgba(30, 41, 59, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      color: var(--light);
+      font-weight: 300;
+      line-height: 1.7;
+    }
+    
+    .ai-response p {
+      margin-bottom: 15px;
+    }
+    
+    .ai-response ul, .ai-response ol {
+      margin-bottom: 15px;
+      padding-left: 20px;
+    }
+    
+    .ai-response li {
+      margin-bottom: 8px;
+    }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 5px;
+      padding: 10px 15px;
+      background: rgba(30, 41, 59, 0.3);
+      border-radius: 8px;
+      width: fit-content;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .typing-indicator.active {
+      opacity: 1;
+    }
+    
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gray);
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes typingAnimation {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-3px); }
+    }
+    
+    .prompt-templates {
+      width: 350px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      height: fit-content;
+    }
+    
+    .prompt-templates::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+    }
+    
+    .templates-header {
+      margin-bottom: 20px;
+    }
+    
+    .templates-header h3 {
+      font-size: 1.2rem;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .templates-header p {
+      color: var(--gray);
+      font-size: 0.9rem;
+      font-weight: 300;
+    }
+    
+    .templates-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    
+    .template-item {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .template-item:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(124, 58, 237, 0.3);
+    }
+    
+    .template-item h4 {
+      font-size: 0.95rem;
+      color: white;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .template-item p {
+      font-size: 0.85rem;
+      color: var(--gray);
+      font-weight: 300;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .template-item .template-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--gray);
+    }
+    
+    .template-item .template-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .template-item .template-action {
+      color: var(--gray);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .template-item .template-action:hover {
+      color: var(--primary);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .module-hero {
+        padding: 150px 5% 60px;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .module-container {
+        flex-direction: column;
+      }
+      
+      .prompt-templates {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .module-hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .module-hero p {
+        font-size: 1.1rem;
+      }
+      
+      .prompt-controls {
+        flex-direction: column;
+      }
+      
+      .prompt-templates {
+        position: static;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .module-hero h1 {
+        font-size: 2rem;
+      }
+      
+      .module-hero p {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <i class="fas fa-robot logo-icon"></i>
+      <span>Progrify</span>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="home.html">Home</a></li>
+        <li><a href="coding-assistant.html">Coding</a></li>
+        <li><a href="product-builder.html">Product Builder</a></li>
+        <li><a href="roleplay-room.html">Roleplay</a></li>
+      </ul>
+    </nav>
+    <div class="header-btns">
+      <button class="btn-outline">Log In</button>
+      <button class="btn"><i class="fas fa-bolt"></i> Upgrade</button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="module-hero">
+    <h1>Prompt Practicing Lab</h1>
+    <p>Master the art of AI communication with our advanced prompt engineering tools. Craft perfect prompts that generate exactly what you need across different AI systems.</p>
+  </section>
+
+  <!-- Main Content -->
+  <section class="module-container">
+    <div class="prompt-workspace">
+      <div class="prompt-editor-container">
+        <div class="editor-header">
+          <h3>Prompt Editor</h3>
+          <div class="editor-actions">
+            <button class="editor-btn" title="Clear"><i class="fas fa-trash"></i></button>
+            <button class="editor-btn" title="Format"><i class="fas fa-indent"></i></button>
+            <button class="editor-btn" title="Save"><i class="fas fa-save"></i></button>
+          </div>
+        </div>
+        <textarea class="prompt-editor" placeholder="Write your prompt here... You can use markdown formatting and special directives like [TONE], [LENGTH], [FORMAT] to guide the AI.">Act as a senior prompt engineer with expertise in crafting effective prompts for large language models. Analyze the following prompt and provide specific recommendations for improvement:
+
+[INSERT PROMPT HERE]
+
+Please evaluate based on:
+1. Clarity and specificity
+2. Appropriate use of constraints
+3. Tone and style
+4. Likelihood to produce desired output
+5. Potential for misinterpretation
+
+Provide your analysis in a structured format with clear examples of improved versions.</textarea>
+        
+        <div class="prompt-controls">
+          <button class="btn" id="generateBtn"><i class="fas fa-bolt"></i> Generate</button>
+          <button class="btn-secondary"><i class="fas fa-comment-alt"></i> Speak to AI</button>
+        </div>
+      </div>
+      
+      <div class="ai-response-container">
+        <div class="response-header">
+          <h3>AI Response</h3>
+          <div class="response-actions">
+            <button class="editor-btn" title="Copy"><i class="fas fa-copy"></i></button>
+            <button class="editor-btn" title="Save"><i class="fas fa-save"></i></button>
+            <button class="editor-btn" title="Feedback"><i class="fas fa-thumbs-up"></i></button>
+          </div>
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+        <div class="ai-response" id="aiResponse">
+          <p>Here's my analysis of your prompt engineering request:</p>
+          
+          <h4>Strengths of Your Current Prompt:</h4>
+          <ul>
+            <li>Clear structure with numbered evaluation criteria</li>
+            <li>Specific request for structured output format</li>
+            <li>Good focus on practical improvement rather than just theory</li>
+          </ul>
+          
+          <h4>Recommended Improvements:</h4>
+          <ol>
+            <li><strong>Clarity Enhancement:</strong> Add example prompts to demonstrate the type of input you're analyzing</li>
+            <li><strong>Constraint Specification:</strong> Define desired output length (e.g., "Keep analysis under 500 words")</li>
+            <li><strong>Tone Guidance:</strong> Specify if you want technical, conversational, or academic tone</li>
+          </ol>
+          
+          <h4>Improved Prompt Version:</h4>
+          <p><em>"Act as a senior prompt engineer... [previous text]... Provide your analysis in bullet point format with:</em></p>
+          <ul>
+            <li><em>Current issue identified</em></li>
+            <li><em>Specific improvement suggestion</em></li>
+            <li><em>Rewritten example</em></li>
+            <li><em>Rationale for the change</em></li>
+          </ul>
+          <p><em>Keep the analysis concise (300-400 words) and use a professional but accessible tone suitable for intermediate learners."</em></p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="prompt-templates">
+      <div class="templates-header">
+        <h3>Prompt Templates</h3>
+        <p>Jumpstart your prompt engineering with these proven templates</p>
+      </div>
+      
+      <div class="templates-list">
+        <div class="template-item">
+          <h4>Prompt Optimizer</h4>
+          <p>Analyze and improve existing prompt with specific recommendations</p>
+          <div class="template-meta">
+            <span>4.8 <i class="fas fa-star"></i></span>
+            <div class="template-actions">
+              <i class="fas fa-copy template-action" title="Copy"></i>
+              <i class="fas fa-arrow-right template-action" title="Use"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="template-item">
+          <h4>Creative Writing</h4>
+          <p>Generate creative story ideas with specific genre, tone, and character constraints</p>
+          <div class="template-meta">
+            <span>4.6 <i class="fas fa-star"></i></span>
+            <div class="template-actions">
+              <i class="fas fa-copy template-action" title="Copy"></i>
+              <i class="fas fa-arrow-right template-action" title="Use"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="template-item">
+          <h4>Technical Explanation</h4>
+          <p>Explain complex technical concepts to different audience levels</p>
+          <div class="template-meta">
+            <span>4.7 <i class="fas fa-star"></i></span>
+            <div class="template-actions">
+              <i class="fas fa-copy template-action" title="Copy"></i>
+              <i class="fas fa-arrow-right template-action" title="Use"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="template-item">
+          <h4>Email Message Generator</h4>
+          <p>Create professional emails with customizable tone, length, and key points</p>
+          <div class="template-meta">
+            <span>4.9 <i class="fas fa-star"></i></span>
+            <div class="template-actions">
+              <i class="fas fa-copy template-action" title="Copy"></i>
+              <i class="fas fa-arrow-right template-action" title="Use"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="template-item">
+          <h4>Learning Assistant</h4>
+          <p>Create customized learning materials with specific difficulty levels</p>
+          <div class="template-meta">
+            <span>4.5 <i class="fas fa-star"></i></span>
+            <div class="template-actions">
+              <i class="fas fa-copy template-action" title="Copy"></i>
+              <i class="fas fa-arrow-right template-action" title="Use"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="template-item">
+          <h4>Code Assistant</h4>
+          <p>Get detailed code reviews with specific focus areas and improvement suggestions</p>
+          <div class="template-meta">
+            <span>4.8 <i class="fas fa-star"></i></span>
+            <div class="template-actions">
+              <i class="fas fa-copy template-action" title="Copy"></i>
+              <i class="fas fa-arrow-right template-action" title="Use"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // DOM elements
+    const generateBtn = document.getElementById('generateBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const aiResponse = document.getElementById('aiResponse');
+    const templateItems = document.querySelectorAll('.template-item');
+    
+    // Simulate AI generation
+    generateBtn.addEventListener('click', () => {
+      // Show typing indicator
+      typingIndicator.classList.add('active');
+      aiResponse.innerHTML = '';
+      
+      // Simulate API call delay
+      setTimeout(() => {
+        typingIndicator.classList.remove('active');
+        
+        // This would be replaced with actual API response
+        aiResponse.innerHTML = `
+          <p>Here's an enhanced version of your prompt with specific improvements:</p>
+          
+          <h4>Optimized Prompt:</h4>
+          <p><em>"Act as a senior prompt engineer with 10+ years experience crafting effective prompts for large language models. Analyze the following prompt and provide specific, actionable recommendations for improvement:</em></p>
+          
+          <p><em>[INSERT PROMPT HERE]</em></p>
+          
+          <p><em>Evaluate based on these 5 criteria (provide 1-2 specific suggestions per category):</em></p>
+          <ol>
+            <li><em>Clarity & Specificity (avoid ambiguity)</em></li>
+            <li><em>Constraint Usage (appropriate boundaries)</em></li>
+            <li><em>Tone & Style (consistency)</em></li>
+            <li><em>Output Quality (likely results)</em></li>
+            <li><em>Misinterpretation Risk (potential pitfalls)</em></li>
+          </ol>
+          
+          <p><em>Structure your response with:</em></p>
+          <ul>
+            <li><em>Brief summary of overall quality (1-2 sentences)</em></li>
+            <li><em>Category-by-category analysis (bullet points)</em></li>
+            <li><em>2-3 rewritten prompt versions showing improvements</em></li>
+            <li><em>Final optimized composite version</em></li>
+          </ul>
+          
+          <p><em>Keep analysis under 400 words. Use professional but approachable tone suitable for technical non-experts."</em></p>
+          
+          <h4>Key Improvements Made:</h4>
+          <ul>
+            <li>Added experience level for more authoritative response</li>
+            <li>Specified exact structure for the analysis</li>
+            <li>Added word count constraint</li>
+            <li>Clarified target audience for tone</li>
+            <li>Requested multiple versions for comparison</li>
+          </ul>
+        `;
+      }, 2000);
+    });
+    
+    // Template item click
+    templateItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.classList.contains('template-action')) {
+          e.stopPropagation();
+          return;
+        }
+        
+        // Highlight selected template
+        templateItems.forEach(i => i.style.borderColor = 'rgba(255, 255, 255, 0.05)');
+        item.style.borderColor = 'var(--primary)';
+      });
+    });
+    
+    // Simulate loading state on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        templateItems[0].style.borderColor = 'var(--primary)';
+      }, 500);
+    });
+  </script>
+</body>
+</html>
