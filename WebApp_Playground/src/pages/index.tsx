@@ -5,13 +5,13 @@ import {
   useRoomContext,
 } from "@livekit/components-react";
 import Head from "next/head";
-import { useCallback, useState, useMemo, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   ConnectionProvider,
   useConnection,
 } from "@/hooks/useConnection";
 import { ToastProvider, useToast } from "@/components/toast/ToasterProvider";
-import { ConfigProvider, useConfig } from "@/hooks/useConfig";
+import { ConfigProvider } from "@/hooks/useConfig";
 import { RoomEvent } from "livekit-client";
 
 const agents = {
@@ -66,23 +66,13 @@ export default function Home() {
   );
 }
 
-export function HomeInner() {
-  const { shouldConnect, wsUrl, token, connect, disconnect } = useConnection();
-  const { setToastMessage } = useToast();
+function HomePage() {
   const room = useRoomContext();
-
   const [currentAgent, setCurrentAgent] = useState('home');
   const [agentMessage, setAgentMessage] = useState(agents.home.greeting);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-
-  const handleConnect = useCallback(
-    async (c: boolean) => {
-      c ? connect("manual") : disconnect();
-    },
-    [connect, disconnect]
-  );
 
   const handleSendMessage = () => {
     if (inputValue.trim() && room.localParticipant) {
@@ -127,6 +117,123 @@ export function HomeInner() {
 
   return (
     <>
+      <header>
+        <div className="logo">
+          <i className="fas fa-robot logo-icon"></i>
+          <span>Progrify</span>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="#specializations">Specializations</a></li>
+            <li><a href="#studio">Sales Mastery</a></li>
+            <li><a href="#testimonials">Success Stories</a></li>
+          </ul>
+        </nav>
+        <div className="header-btns">
+          <button className="btn-outline">Log In</button>
+          <button className="btn" id="talkToAI" onClick={() => room.disconnect()}>
+            <i className="fas fa-microphone"></i> Disconnect
+          </button>
+        </div>
+      </header>
+
+      <section className="hero">
+        <div className="hero-text">
+          <h1>Master the Digital Universe with AI Superpowers</h1>
+          <p>Progrify gives you four specialized AI agents that transform how you code, build products, craft prompts, and master sales - all through natural conversation.</p>
+          <div className="hero-btns">
+            <button className="btn btn-secondary"><i className="fas fa-play"></i> Watch Demo</button>
+            <button className="btn"><i className="fas fa-bolt"></i> Start Free Trial</button>
+          </div>
+          <div className="free-label">
+            <i className="fas fa-check-circle"></i> No credit card required
+          </div>
+          <div className="stats">
+            <div className="stat-item">
+              <span className="stat-number">4X</span>
+              <span className="stat-label">Productivity</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">100%</span>
+              <span className="stat-label">Focus</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">24/7</span>
+              <span className="stat-label">Availability</span>
+            </div>
+          </div>
+        </div>
+        <div className="hero-animation">
+          <div className="ai-agent-container floating" id="homeAgent">
+            <div className="ai-agent-header">
+              <div className="ai-agent-info">
+                <div className="ai-avatar">
+                  <i className={`fas ${agents[currentAgent as keyof typeof agents].icon}`}></i>
+                </div>
+                <div>
+                  <div className="ai-name">{agents[currentAgent as keyof typeof agents].name}</div>
+                  <div className="ai-role">{agents[currentAgent as keyof typeof agents].role}</div>
+                </div>
+              </div>
+              <button className="btn" style={{ padding: '8px 15px', fontSize: '0.9rem' }} id="switchAgentBtn" onClick={() => setIsModalOpen(true)}>
+                <i className="fas fa-random"></i> Switch Agent
+              </button>
+            </div>
+            <div className="ai-message" id="agentMessage" dangerouslySetInnerHTML={{ __html: agentMessage }}>
+            </div>
+            {isTyping && (
+              <div className="typing-indicator active" id="typingIndicator">
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
+              </div>
+            )}
+            <div className="user-input">
+              <input type="text" id="userInput" placeholder="Type or speak your request..." value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} />
+              <div className="input-actions">
+                <button className="voice-btn" id="voiceBtn"><i className="fas fa-microphone"></i></button>
+                <button className="send-btn" id="sendBtn" onClick={handleSendMessage}><i className="fas fa-paper-plane"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {isModalOpen && (
+        <div className="modal" id="agentModal" style={{ display: 'flex' }}>
+          <div className="modal-content">
+            <span className="close-modal" id="closeModal" onClick={() => setIsModalOpen(false)}>&times;</span>
+            <h3>Switch AI Specialist</h3>
+            <p>Select the specialized agent you'd like to work with:</p>
+            <div className="agent-options" style={{ marginTop: '20px' }}>
+              {Object.keys(agents).map(key => (
+                <button key={key} className="btn-outline agent-option" style={{ width: '100%', marginBottom: '10px', textAlign: 'left' }} data-agent={key} onClick={() => switchAgent(key)}>
+                  <i className={`fas ${agents[key as keyof typeof agents].icon}`}></i> {agents[key as keyof typeof agents].name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      <RoomAudioRenderer />
+      <StartAudio label="Click to enable audio playback" />
+    </>
+  );
+}
+
+export function HomeInner() {
+  const { shouldConnect, wsUrl, token, connect, disconnect } = useConnection();
+  const { setToastMessage } = useToast();
+
+  const handleConnect = useCallback(
+    async (c: boolean) => {
+      c ? connect("manual") : disconnect();
+    },
+    [connect, disconnect]
+  );
+
+  return (
+    <>
       <Head>
         <title>Progrify | AI-Powered Digital Mastery</title>
         <meta name="description" content="Master the universe of AI with Progrify's specialized agents for coding, product building, prompt engineering, and sales mastery." />
@@ -136,117 +243,39 @@ export function HomeInner() {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </Head>
       <main>
-        <header>
-          <div className="logo">
-            <i className="fas fa-robot logo-icon"></i>
-            <span>Progrify</span>
-          </div>
-          <nav>
-            <ul>
-              <li><a href="#specializations">Specializations</a></li>
-              <li><a href="#studio">Sales Mastery</a></li>
-              <li><a href="#testimonials">Success Stories</a></li>
-            </ul>
-          </nav>
-          <div className="header-btns">
-            <button className="btn-outline">Log In</button>
-            <button className="btn" id="talkToAI" onClick={() => handleConnect(!shouldConnect)}>
-              <i className="fas fa-microphone"></i> {shouldConnect ? "Disconnect" : "Talk to AI"}
-            </button>
-          </div>
-        </header>
-
-        <section className="hero">
-          <div className="hero-text">
-            <h1>Master the Digital Universe with AI Superpowers</h1>
-            <p>Progrify gives you four specialized AI agents that transform how you code, build products, craft prompts, and master sales - all through natural conversation.</p>
-            <div className="hero-btns">
-              <button className="btn btn-secondary"><i className="fas fa-play"></i> Watch Demo</button>
-              <button className="btn"><i className="fas fa-bolt"></i> Start Free Trial</button>
+        {shouldConnect ? (
+          <LiveKitRoom
+            serverUrl={wsUrl}
+            token={token}
+            connect={shouldConnect}
+            onError={(e) => {
+              setToastMessage({ message: e.message, type: "error" });
+              console.error(e);
+            }}
+          >
+            <HomePage />
+          </LiveKitRoom>
+        ) : (
+          <header>
+            <div className="logo">
+              <i className="fas fa-robot logo-icon"></i>
+              <span>Progrify</span>
             </div>
-            <div className="free-label">
-              <i className="fas fa-check-circle"></i> No credit card required
+            <nav>
+              <ul>
+                <li><a href="#specializations">Specializations</a></li>
+                <li><a href="#studio">Sales Mastery</a></li>
+                <li><a href="#testimonials">Success Stories</a></li>
+              </ul>
+            </nav>
+            <div className="header-btns">
+              <button className="btn-outline">Log In</button>
+              <button className="btn" id="talkToAI" onClick={() => handleConnect(true)}>
+                <i className="fas fa-microphone"></i> Talk to AI
+              </button>
             </div>
-            <div className="stats">
-              <div className="stat-item">
-                <span className="stat-number">4X</span>
-                <span className="stat-label">Productivity</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">100%</span>
-                <span className="stat-label">Focus</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">24/7</span>
-                <span className="stat-label">Availability</span>
-              </div>
-            </div>
-          </div>
-          <div className="hero-animation">
-            <div className="ai-agent-container floating" id="homeAgent">
-              <div className="ai-agent-header">
-                <div className="ai-agent-info">
-                  <div className="ai-avatar">
-                    <i className={`fas ${agents[currentAgent as keyof typeof agents].icon}`}></i>
-                  </div>
-                  <div>
-                    <div className="ai-name">{agents[currentAgent as keyof typeof agents].name}</div>
-                    <div className="ai-role">{agents[currentAgent as keyof typeof agents].role}</div>
-                  </div>
-                </div>
-                <button className="btn" style={{ padding: '8px 15px', fontSize: '0.9rem' }} id="switchAgentBtn" onClick={() => setIsModalOpen(true)}>
-                  <i className="fas fa-random"></i> Switch Agent
-                </button>
-              </div>
-              <div className="ai-message" id="agentMessage" dangerouslySetInnerHTML={{ __html: agentMessage }}>
-              </div>
-              {isTyping && (
-                <div className="typing-indicator active" id="typingIndicator">
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                </div>
-              )}
-              <div className="user-input">
-                <input type="text" id="userInput" placeholder="Type or speak your request..." value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} />
-                <div className="input-actions">
-                  <button className="voice-btn" id="voiceBtn"><i className="fas fa-microphone"></i></button>
-                  <button className="send-btn" id="sendBtn" onClick={handleSendMessage}><i className="fas fa-paper-plane"></i></button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {isModalOpen && (
-          <div className="modal" id="agentModal" style={{ display: 'flex' }}>
-            <div className="modal-content">
-              <span className="close-modal" id="closeModal" onClick={() => setIsModalOpen(false)}>&times;</span>
-              <h3>Switch AI Specialist</h3>
-              <p>Select the specialized agent you'd like to work with:</p>
-              <div className="agent-options" style={{ marginTop: '20px' }}>
-                {Object.keys(agents).map(key => (
-                  <button key={key} className="btn-outline agent-option" style={{ width: '100%', marginBottom: '10px', textAlign: 'left' }} data-agent={key} onClick={() => switchAgent(key)}>
-                    <i className={`fas ${agents[key as keyof typeof agents].icon}`}></i> {agents[key as keyof typeof agents].name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          </header>
         )}
-
-        <LiveKitRoom
-          serverUrl={wsUrl}
-          token={token}
-          connect={shouldConnect}
-          onError={(e) => {
-            setToastMessage({ message: e.message, type: "error" });
-            console.error(e);
-          }}
-        >
-          <RoomAudioRenderer />
-          <StartAudio label="Click to enable audio playback" />
-        </LiveKitRoom>
       </main>
     </>
   );
