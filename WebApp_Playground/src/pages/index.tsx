@@ -9,7 +9,6 @@ import { useCallback, useState, useEffect } from "react";
 import { ToastProvider, useToast } from "@/components/toast/ToasterProvider";
 import { ConfigProvider } from "@/hooks/useConfig";
 import { RoomEvent, ConnectionState } from "livekit-client";
-import { useLiveKitUrl } from "@/hooks/useLiveKitUrl";
 
 const agents = {
   home: {
@@ -53,16 +52,14 @@ const agents = {
 
 export default function Home() {
   const [shouldConnect, setShouldConnect] = useState(false);
-  const { wsUrl, token } = useLiveKitUrl();
   const { setToastMessage } = useToast();
 
   const handleConnect = (connect: boolean) => {
     setShouldConnect(connect);
   };
 
-  if (!wsUrl || !token) {
-    return <div>Loading...</div>;
-  }
+  const wsUrl = "ws://localhost:7880";
+  const token = "devtoken";
 
   return (
     <ToastProvider>
