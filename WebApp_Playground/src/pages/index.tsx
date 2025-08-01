@@ -6,8 +6,7 @@ import {
 } from "@livekit/components-react";
 import Head from "next/head";
 import { useCallback, useState, useEffect } from "react";
-import { ToastProvider, useToast } from "@/components/toast/ToasterProvider";
-import { ConfigProvider } from "@/hooks/useConfig";
+import { useToast } from "@/components/toast/ToasterProvider";
 import { RoomEvent, ConnectionState } from "livekit-client";
 
 const agents = {
@@ -62,21 +61,17 @@ export default function Home() {
   const token = "devtoken";
 
   return (
-    <ToastProvider>
-      <ConfigProvider>
-        <LiveKitRoom
-          serverUrl={wsUrl}
-          token={token}
-          connect={shouldConnect}
-          onError={(e) => {
-            setToastMessage({ message: e.message, type: "error" });
-            console.error(e);
-          }}
-        >
-          <HomePage onConnect={handleConnect} />
-        </LiveKitRoom>
-      </ConfigProvider>
-    </ToastProvider>
+    <LiveKitRoom
+      serverUrl={wsUrl}
+      token={token}
+      connect={shouldConnect}
+      onError={(e) => {
+        setToastMessage({ message: e.message, type: "error" });
+        console.error(e);
+      }}
+    >
+      <HomePage onConnect={handleConnect} />
+    </LiveKitRoom>
   );
 }
 
