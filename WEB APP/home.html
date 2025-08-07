@@ -1470,8 +1470,7 @@
     <span>Disconnected</span>
   </div>
 
-  <!-- Single script section with all functionality -->
-  <script src="https://cdn.jsdelivr.net/npm/livekit-client@1.0.0/dist/livekit-client.umd.min.js"></script>
+  <!-- Home page script -->
   <script>
     // Current room connection
     let currentRoom = null;
@@ -1826,33 +1825,10 @@
     updateAgentUI('home');
   </script>
 
-<!-- Add this RIGHT BEFORE </body> -->
-<script src="https://cdn.jsdelivr.net/npm/livekit-client@1.0.0/dist/livekit-client.umd.min.js"></script>
-<script>
-document.getElementById('talkToAI').addEventListener('click', async function() {
-    try {
-        const room = new LiveKitClient.Room();
-        await room.connect('ws://localhost:7880', 'devtoken');
-        
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioTrack = new LiveKitClient.LocalAudioTrack(stream.getAudioTracks()[0]);
-        await room.localParticipant.publishTrack(audioTrack);
-        
-        room.on('trackPublished', (publication, participant) => {
-            if (publication.track.kind === 'audio') {
-                const audioElement = new Audio();
-                audioElement.autoplay = true;
-                document.body.appendChild(audioElement);
-                publication.track.attach(audioElement);
-            }
-        });
-        
-        alert("Connected! Speak to your AI agent.");
-    } catch (error) {
-        console.error("Connection failed:", error);
-        alert("Error: " + error.message + "\n\n1. Run 'python agent.py dev'\n2. Allow microphone\n3. Refresh page");
-    }
-});
-</script>
+<!-- LiveKit Client -->
+<script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js"></script>
+
+<!-- Progrify Integration -->
+<script src="progrify-integration.js"></script>
 </body>
 </html>
