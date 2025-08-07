@@ -260,8 +260,7 @@ export default function Home() {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js" async></script>
-        <style>
-          {`
+        <style>{`
             :root {
               --primary: #7c3aed;
               --primary-dark: #5b21b6;
@@ -1358,10 +1357,9 @@ export default function Home() {
             .floating {
               animation: float 3s ease-in-out infinite;
             }
-          `}
-        </style>
+          `}</style>
       </Head>
-      <body>
+      <>
         {/* Header */}
         <header>
           <div className="logo">
@@ -1722,7 +1720,7 @@ export default function Home() {
           <i className="fas fa-circle"></i>
           <span>Disconnected</span>
         </div>
-      </body>
+      </>
     </>
   );
 }
