@@ -1,255 +1,200 @@
 import Head from "next/head";
-import { useEffect } from 'react';
-import getConfig from 'next/config';
+import { useEffect, useState, useRef } from 'react';
 import { Room, RoomEvent, LocalAudioTrack, RemoteParticipant, RemoteTrackPublication, RemoteTrack } from 'livekit-client';
 
-const { publicRuntimeConfig } = getConfig();
+const agents = {
+  home: {
+    name: 'Home Agent',
+    role: 'Your AI Concierge',
+    icon: 'fa-home',
+    greeting: `Welcome to Progrify! I'm your Home Agent. I can connect you with our specialized agents:
+      <ul style="margin-top: 10px; padding-left: 20px;">
+        <li><strong>Prompt Engineer</strong> - Master AI communication</li>
+        <li><strong>Coding Assistant</strong> - Build better, faster</li>
+        <li><strong>Product Builder</strong> - Create digital products</li>
+        <li><strong>Sales Coach</strong> - Practice client interactions</li>
+      </ul>
+      <p style="margin-top: 10px;">What would you like to work on today?</p>`,
+  },
+  prompt: {
+    name: 'Prompt Engineer',
+    role: 'AI Communication Specialist',
+    icon: 'fa-terminal',
+    greeting: `Hello! I'm your Prompt Engineering Agent. I can help you...`,
+  },
+  coding: {
+    name: 'Coding Assistant',
+    role: 'AI Pair Programmer',
+    icon: 'fa-code',
+    greeting: `Hi there! I'm your AI Coding Assistant. What are you working on today?`,
+  },
+  product: {
+    name: 'Product Builder',
+    role: 'Digital Product Specialist',
+    icon: 'fa-cube',
+    greeting: `Welcome to the Digital Product Builder! What are we building today?`,
+  },
+  sales: {
+    name: 'Sales Coach',
+    role: 'AI Client Simulator',
+    icon: 'fa-handshake',
+    greeting: `Hello! I'm your AI Sales Coach. Ready to practice your sales skills?`,
+  }
+};
 
 export default function Home() {
+  const [currentRoom, setCurrentRoom] = useState(null);
+  const [currentAgent, setCurrentAgent] = useState('home');
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [agentMessage, setAgentMessage] = useState(agents.home.greeting);
+  const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const userInputRef = useRef(null);
+  const audioStreamRef = useRef(null);
+
   useEffect(() => {
-    // Ensure LiveKitClient is loaded
+    return () => {
+      if (currentRoom) {
+        currentRoom.disconnect();
+      }
+    };
+  }, [currentRoom]);
+
+  const updateAgentUI = (agentKey) => {
+    const agent = agents[agentKey];
+    if (!agent) return;
+    setCurrentAgent(agentKey);
+    setIsAgentSpeaking(true);
+    setAgentMessage('');
+    setTimeout(() => {
+      setIsAgentSpeaking(false);
+      setAgentMessage(agent.greeting);
+    }, 1000);
+  };
+
+  const connectToAgent = async () => {
     if (typeof window.LiveKitClient === 'undefined') {
       console.error('LiveKitClient not loaded');
+      setConnectionStatus('disconnected');
+      setAgentMessage('<p style="color: #ef4444;">Error: LiveKitClient not loaded.</p>');
       return;
     }
 
-    let currentRoom = null;
-    let currentAgent = 'home';
-    let audioStream = null;
+    setConnectionStatus('connecting');
+    setAgentMessage('<p>Connecting to AI agent...</p>');
 
-    const agents = {
-      home: {
-        name: 'Home Agent',
-        role: 'Your AI Concierge',
-        icon: 'fa-home',
-        greeting: `Welcome to Progrify! I'm your Home Agent. I can connect you with our specialized agents:
-          <ul style="margin-top: 10px; padding-left: 20px;">
-            <li><strong>Prompt Engineer</strong> - Master AI communication</li>
-            <li><strong>Coding Assistant</strong> - Build better, faster</li>
-            <li><strong>Product Builder</strong> - Create digital products</li>
-            <li><strong>Sales Coach</strong> - Practice client interactions</li>
-          </ul>
-          <p style="margin-top: 10px;">What would you like to work on today?</p>`,
-      },
-      prompt: {
-        name: 'Prompt Engineer',
-        role: 'AI Communication Specialist',
-        icon: 'fa-terminal',
-        greeting: `Hello! I'm your Prompt Engineering Agent. I can help you...`,
-      },
-      coding: {
-        name: 'Coding Assistant',
-        role: 'AI Pair Programmer',
-        icon: 'fa-code',
-        greeting: `Hi there! I'm your AI Coding Assistant. What are you working on today?`,
-      },
-      product: {
-        name: 'Product Builder',
-        role: 'Digital Product Specialist',
-        icon: 'fa-cube',
-        greeting: `Welcome to the Digital Product Builder! What are we building today?`,
-      },
-      sales: {
-        name: 'Sales Coach',
-        role: 'AI Client Simulator',
-        icon: 'fa-handshake',
-        greeting: `Hello! I'm your AI Sales Coach. Ready to practice your sales skills?`,
-      }
-    };
-
-    const agentContainer = document.getElementById('homeAgent');
-    const agentMessage = document.getElementById('agentMessage');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const voiceBtn = document.getElementById('voiceBtn');
-    const switchAgentBtn = document.getElementById('switchAgentBtn');
-    const talkToAIBtn = document.getElementById('talkToAI');
-    const agentModal = document.getElementById('agentModal');
-    const closeModal = document.getElementById('closeModal');
-    const agentOptions = document.querySelectorAll('.agent-option');
-    const specializationCards = document.querySelectorAll('.specialization-card');
-    const connectionStatus = document.getElementById('connectionStatus');
-
-    function updateConnectionStatus(status, message = '') {
-      connectionStatus.className = `connection-status ${status}`;
-      const statusText = status.charAt(0).toUpperCase() + status.slice(1);
-      connectionStatus.innerHTML = `<i class="fas fa-circle"></i><span>${statusText} ${message}</span>`;
-    }
-
-    async function connectToAgent() {
-      try {
-        updateConnectionStatus('connecting');
-        agentMessage.innerHTML = '<p>Connecting to AI agent...</p>';
-
-        const resp = await fetch('/api/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ participantName: 'user-' + Math.random().toString(36).substring(7) })
-        });
-        const { accessToken, identity, roomName } = await resp.json();
-
-        const room = new Room({
-          adaptiveStream: true,
-          dynacast: true,
-        });
-
-        const livekitUrl = publicRuntimeConfig.livekitUrl || 'ws://localhost:7880';
-
-        await room.connect(livekitUrl, accessToken);
-
-        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioTrack = new LocalAudioTrack(audioStream.getAudioTracks()[0]);
-        await room.localParticipant.publishTrack(audioTrack);
-
-        room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
-          if (track.kind === 'audio') {
-            const audioElement = track.attach();
-            document.body.appendChild(audioElement);
-            updateConnectionStatus('connected');
-            agentMessage.innerHTML = `<p>Connected! You can now talk to the agent.</p>`;
-          }
-        });
-
-        room.on(RoomEvent.DataReceived, (payload, participant) => {
-            const data = JSON.parse(new TextDecoder().decode(payload));
-            if (data.type === 'agent_update') {
-              updateAgentUI(data.agent);
-            } else if (data.type === 'agent_message') {
-                typingIndicator.classList.remove('active');
-                agentMessage.innerHTML = data.message;
-            } else if (data.type === 'agent_speaking') {
-                typingIndicator.classList.add('active');
-            }
-        });
-
-        room.on(RoomEvent.Disconnected, () => {
-          updateConnectionStatus('disconnected');
-          agentMessage.innerHTML = '<p>Disconnected. Click "Talk to AI" to reconnect.</p>';
-        });
-
-        currentRoom = room;
-        updateConnectionStatus('connected');
-        agentMessage.innerHTML = `<p>Connected to room ${roomName}. You can start talking now.</p>`;
-
-      } catch (error) {
-        console.error('Error connecting to agent:', error);
-        updateConnectionStatus('disconnected', ` - ${error.message}`);
-        agentMessage.innerHTML = `
-          <p style="color: #ef4444;">Connection failed</p>
-          <p>${error.message}</p>
-          <p>Please ensure the AI agent server is running.</p>
-        `;
-      }
-    }
-
-    async function disconnectFromAgent() {
-      if (currentRoom) {
-        await currentRoom.disconnect();
-        currentRoom = null;
-      }
-      if (audioStream) {
-        audioStream.getTracks().forEach(track => track.stop());
-        audioStream = null;
-      }
-      updateConnectionStatus('disconnected');
-    }
-
-    function updateAgentUI(agentKey) {
-      const agent = agents[agentKey];
-      if (!agent) return;
-      currentAgent = agentKey;
-
-      document.querySelector('.ai-name').textContent = agent.name;
-      document.querySelector('.ai-role').textContent = agent.role;
-      document.querySelector('.ai-avatar i').className = `fas ${agent.icon}`;
-
-      typingIndicator.classList.add('active');
-      agentMessage.innerHTML = '';
-
-      setTimeout(() => {
-        typingIndicator.classList.remove('active');
-        agentMessage.innerHTML = agent.greeting;
-      }, 1000);
-    }
-
-    function switchAgent(agentKey) {
-      if (!currentRoom || agentKey === currentAgent) return;
-      const data = JSON.stringify({ type: 'switch_agent', agent: agentKey });
-      currentRoom.localParticipant.publishData(new TextEncoder().encode(data));
-      updateAgentUI(agentKey); // Optimistically update UI
-    }
-
-    function handleUserInput() {
-      const text = userInput.value.trim();
-      if (!text || !currentRoom) return;
-
-      const data = JSON.stringify({ type: 'user_message', text: text });
-      currentRoom.localParticipant.publishData(new TextEncoder().encode(data));
-
-      userInput.value = '';
-    }
-
-    talkToAIBtn.addEventListener('click', () => {
-      if (!currentRoom) {
-        connectToAgent();
-      } else {
-        disconnectFromAgent();
-      }
-    });
-
-    sendBtn.addEventListener('click', handleUserInput);
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleUserInput();
-    });
-
-    voiceBtn.addEventListener('click', () => {
-      // Placeholder for voice input activation
-      console.log('Voice input activated');
-    });
-
-    switchAgentBtn.addEventListener('click', () => {
-      agentModal.style.display = 'flex';
-    });
-
-    closeModal.addEventListener('click', () => {
-      agentModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (e) => {
-      if (e.target === agentModal) {
-        agentModal.style.display = 'none';
-      }
-    });
-
-    agentOptions.forEach(option => {
-      option.addEventListener('click', () => {
-        const agentKey = option.dataset.agent;
-        switchAgent(agentKey);
-        agentModal.style.display = 'none';
+    try {
+      const resp = await fetch('/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantName: 'user-' + Math.random().toString(36).substring(7) })
       });
-    });
 
-    specializationCards.forEach(card => {
-      card.addEventListener('click', () => {
-        const agentKey = card.dataset.agent;
-        if (!currentRoom) {
-          connectToAgent().then(() => switchAgent(agentKey));
-        } else {
-          switchAgent(agentKey);
+      if (!resp.ok) {
+        throw new Error(`Failed to fetch token: ${resp.statusText}`);
+      }
+
+      const { accessToken, roomName } = await resp.json();
+
+      const room = new Room({
+        adaptiveStream: true,
+        dynacast: true,
+      });
+
+      const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || 'ws://localhost:7880';
+
+      await room.connect(livekitUrl, accessToken);
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+      const audioTrack = new LocalAudioTrack(stream.getAudioTracks()[0]);
+      await room.localParticipant.publishTrack(audioTrack);
+
+      room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        if (track.kind === 'audio') {
+          const audioElement = track.attach();
+          document.body.appendChild(audioElement);
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-    });
 
-    updateAgentUI('home');
+      room.on(RoomEvent.DataReceived, (payload, participant) => {
+        const data = JSON.parse(new TextDecoder().decode(payload));
+        if (data.type === 'agent_update') {
+          updateAgentUI(data.agent);
+        } else if (data.type === 'agent_message') {
+          setIsAgentSpeaking(false);
+          setAgentMessage(data.message);
+        } else if (data.type === 'agent_speaking') {
+          setIsAgentSpeaking(data.speaking);
+        }
+      });
 
-    // Cleanup on component unmount
-    return () => {
+      room.on(RoomEvent.Disconnected, () => {
+        setConnectionStatus('disconnected');
+        setAgentMessage('<p>Disconnected. Click "Talk to AI" to reconnect.</p>');
+        if (audioStreamRef.current) {
+          audioStreamRef.current.getTracks().forEach(track => track.stop());
+        }
+      });
+
+      setCurrentRoom(room);
+      setConnectionStatus('connected');
+      setAgentMessage(`<p>Connected to room ${roomName}. You can start talking now.</p>`);
+
+    } catch (error) {
+      console.error('Error connecting to agent:', error);
+      setConnectionStatus('disconnected');
+      setAgentMessage(`
+        <p style="color: #ef4444;">Connection failed</p>
+        <p>${error.message}</p>
+        <p>Please ensure the AI agent server is running and environment variables are set.</p>
+      `);
+    }
+  };
+
+  const disconnectFromAgent = async () => {
+    if (currentRoom) {
+      await currentRoom.disconnect();
+      setCurrentRoom(null);
+    }
+  };
+
+  const handleTalkToAIClick = () => {
+    if (!currentRoom) {
+      connectToAgent();
+    } else {
       disconnectFromAgent();
-    };
+    }
+  };
 
-  }, []);
+  const switchAgent = (agentKey) => {
+    if (!currentRoom || agentKey === currentAgent) return;
+    const data = JSON.stringify({ type: 'switch_agent', agent: agentKey });
+    currentRoom.localParticipant.publishData(new TextEncoder().encode(data));
+    updateAgentUI(agentKey);
+  };
+
+  const handleUserInput = () => {
+    const text = userInputRef.current.value.trim();
+    if (!text || !currentRoom) return;
+
+    const data = JSON.stringify({ type: 'user_message', text: text });
+    currentRoom.localParticipant.publishData(new TextEncoder().encode(data));
+
+    userInputRef.current.value = '';
+  };
+
+  const handleSpecializationClick = (agentKey) => {
+    if (!currentRoom) {
+      connectToAgent().then(() => switchAgent(agentKey));
+    } else {
+      switchAgent(agentKey);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const agent = agents[currentAgent];
 
   return (
     <>
@@ -301,14 +246,12 @@ export default function Home() {
               line-height: 1.2;
             }
 
-            /* Glow effects */
             @keyframes pulse-glow {
               0% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.3); }
               50% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.5); }
               100% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.3); }
             }
 
-            /* Header */
             header {
               background: rgba(2, 6, 23, 0.8);
               padding: 20px 5%;
@@ -441,7 +384,6 @@ export default function Home() {
               background: #d97706;
             }
 
-            /* Hero Section */
             .hero {
               display: flex;
               align-items: center;
@@ -720,7 +662,6 @@ export default function Home() {
               30% { transform: translateY(-3px); }
             }
 
-            /* Specializations Section */
             .section {
               padding: 120px 5%;
               position: relative;
@@ -844,7 +785,6 @@ export default function Home() {
               color: var(--primary-light);
             }
 
-            /* Communication Studio */
             .communication-studio {
               background: linear-gradient(135deg, #0f172a 0%, #1a1b2f 100%);
               color: white;
@@ -965,7 +905,6 @@ export default function Home() {
               font-weight: 300;
             }
 
-            /* Testimonials */
             .testimonials-container {
               display: flex;
               gap: 25px;
@@ -1029,7 +968,6 @@ export default function Home() {
               font-size: 0.95rem;
             }
 
-            /* CTA Section */
             .cta {
               background: linear-gradient(135deg, #0f172a 0%, #1a1b2f 100%);
               color: white;
@@ -1099,7 +1037,6 @@ export default function Home() {
               color: var(--dark);
             }
 
-            /* Footer */
             footer {
               background: var(--darker);
               color: white;
@@ -1186,7 +1123,6 @@ export default function Home() {
               font-weight: 300;
             }
 
-            /* Modal for Agent Switching */
             .modal {
               display: none;
               position: fixed;
@@ -1239,7 +1175,6 @@ export default function Home() {
               transform: rotate(90deg);
             }
 
-            /* Connection status indicator */
             .connection-status {
               position: fixed;
               bottom: 20px;
@@ -1268,7 +1203,6 @@ export default function Home() {
               color: var(--secondary);
             }
 
-            /* Responsive Design */
             @media (max-width: 1200px) {
               .hero {
                 padding: 150px 5% 80px;
@@ -1346,7 +1280,6 @@ export default function Home() {
               }
             }
 
-            /* Animations */
             @keyframes float {
               0%, 100% { transform: translateY(0); }
               50% { transform: translateY(-8px); }
