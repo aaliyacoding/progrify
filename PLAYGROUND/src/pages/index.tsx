@@ -255,11 +255,6 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Progrify | AI-Powered Digital Mastery</title>
         <meta name="description" content="Master the universe of AI with Progrify's specialized agents for coding, product building, prompt engineering, and sales mastery." />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js" async></script>
         <style>{`
             :root {
               --primary: #7c3aed;
