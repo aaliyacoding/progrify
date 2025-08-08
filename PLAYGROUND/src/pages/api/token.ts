@@ -1,13 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateRandomAlphanumeric } from "@/lib/util";
+import getConfig from 'next/config';
 
 import { AccessToken } from "livekit-server-sdk";
 import { RoomAgentDispatch, RoomConfiguration } from "@livekit/protocol";
 import type { AccessTokenOptions, VideoGrant } from "livekit-server-sdk";
 import { TokenResult } from "../../lib/types";
 
-const apiKey = process.env.LIVEKIT_API_KEY;
-const apiSecret = process.env.LIVEKIT_API_SECRET;
+const { serverRuntimeConfig } = getConfig();
+const apiKey = serverRuntimeConfig.livekitApiKey;
+const apiSecret = serverRuntimeConfig.livekitApiSecret;
 
 const createToken = (
   userInfo: AccessTokenOptions,

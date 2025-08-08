@@ -1,6 +1,9 @@
 import Head from "next/head";
 import { useEffect } from 'react';
+import getConfig from 'next/config';
 import { Room, RoomEvent, LocalAudioTrack, RemoteParticipant, RemoteTrackPublication, RemoteTrack } from 'livekit-client';
+
+const { publicRuntimeConfig } = getConfig();
 
 export default function Home() {
   useEffect(() => {
@@ -91,7 +94,7 @@ export default function Home() {
           dynacast: true,
         });
 
-        const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || 'ws://localhost:7880';
+        const livekitUrl = publicRuntimeConfig.livekitUrl || 'ws://localhost:7880';
 
         await room.connect(livekitUrl, accessToken);
 
